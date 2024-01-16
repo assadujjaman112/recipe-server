@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 // Middlewares
@@ -35,10 +35,34 @@ async function run() {
         const result = await recipeCollection.find().toArray();
         res.send(result)
     })
+
+    app.get("/recipe/:id", async(req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const result = await recipeCollection.findOne(query);
+      res.send(result);
+    })
+
     app.post("/recipe", async(req, res)=> {
         const recipe = req.body;
         const result = await recipeCollection.insertOne(recipe);
         res.send(result);
+    })
+
+    app.patch("/recipe/:id", async(req, res) => {
+      const recipe = req.body;
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)};
+      const updatedRecipe = {
+        $set : {
+          title : recipe.title,
+          instruction : recipe.instruction,
+          image : recipe.image,
+          ingredients : recipe.ingredients
+        }
+      }
+      const result = await recipeCollection.updateOne(filter, updatedRecipe);
+      res.send(result);
     })
 
 
